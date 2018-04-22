@@ -10,18 +10,23 @@ namespace Runit.Backend.Controllers
     [Route("api/[controller]")]
     public class ActivityController : Controller
     {
+        private readonly RunitContext context;
+
+        public ActivityController(RunitContext context) {
+            this.context = context;
+        }
         // GET api/activity
         [HttpGet]
         public IEnumerable<Activity> Get()
         {
-            return new List<Activity>();
+            return context.Activities.ToList();
         }
 
         // GET api/activity/5
         [HttpGet("{id}")]
-        public  Activity Get(int id)
+        public Activity Get(int id)
         {
-            return new Activity();
+            return context.Activities.FirstOrDefault(activity => activity.Id == id);
         }
 
         // POST api/activity

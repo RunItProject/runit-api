@@ -4,10 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Runit.Backend.Models;
 
 namespace Runit.Backend
 {
@@ -23,6 +25,7 @@ namespace Runit.Backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<RunitContext>(opt => opt.UseSqlite("Data Source=runit.db"));
             services.AddMvc();
         }
 
@@ -33,8 +36,15 @@ namespace Runit.Backend
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            
             app.UseMvc();
+
+            using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                var context = serviceScope.ServiceProvider.GetRequiredService<RunitContext>();
+                context.Database.EnsureCreated();
+            }
+
         }
     }
 }
