@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Runit.Backend.Database;
 using Runit.Backend.Models;
@@ -9,6 +10,7 @@ using Runit.Backend.Models;
 namespace Runit.Backend.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     public class ActivityController : Controller
     {
         private readonly RunitContext context;

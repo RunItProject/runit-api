@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -30,14 +31,14 @@ namespace Runit.Backend.Controllers
         
         // GET api/user
         [HttpGet]
-        public IEnumerable<User> Get()
+        public ActionResult<IEnumerable<User>> Get()
         {
             return userManager.Users.ToList();
         }
 
         // GET api/user/5
         [HttpGet("{id}")]
-        public User Get(int id)
+        public ActionResult<User> Get(int id)
         {
             return new User();
         }
@@ -63,20 +64,26 @@ namespace Runit.Backend.Controllers
         // POST api/auth
         [HttpPost("auth")]
         [AllowAnonymous]
-        public async Task<object> Authenticate([FromBody] string email, [FromBody] string password) 
+        public async Task<ActionResult<object>> Authenticate([FromBody] LoginDto loginDto) 
         {
-            var result = await signInManager.PasswordSignInAsync(email, password, false, false);
+            if (! ModelState.IsValid) {
+                return BadRequest();
+            }
+
+            var result = await signInManager.PasswordSignInAsync(loginDto.Email, loginDto.Password, false, false);
             
             if (result.Succeeded)
             {
-                var appUser = userManager.Users.SingleOrDefault(r => r.Email == email);
-                return GenerateJwtToken(appUser);
+                var appUser = userManager.Users.SingleOrDefault(r => r.Email == loginDto.Email);
+                var token = GenerateJwtToken(appUser);
+
+                return new { Token = token };
             }
-            
-            throw new ApplicationException("INVALID_LOGIN_ATTEMPT");
+
+            return Unauthorized();
         }
 
-        private object GenerateJwtToken(User user)
+        private string GenerateJwtToken(User user)
         {
             var claims = new List<Claim>
             {
@@ -85,19 +92,28 @@ namespace Runit.Backend.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtKey"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Authentication:Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddDays(Convert.ToDouble(configuration["JwtExpireDays"]));
+            var expires = DateTime.Now.AddDays(Convert.ToDouble(configuration["Authentication:Jwt:ExpireDays"]));
 
             var token = new JwtSecurityToken(
-                configuration["JwtIssuer"],
-                configuration["JwtIssuer"],
+                configuration["Authentication:Jwt:Issuer"],
+                configuration["Authentication:Jwt:Issuer"],
                 claims,
                 expires: expires,
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        public class LoginDto
+        {
+            [Required]
+            public string Email {get; set;}
+
+            [Required]            
+            public string Password {get; set;}
         }
     }
 }

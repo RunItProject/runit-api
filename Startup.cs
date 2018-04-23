@@ -52,16 +52,16 @@ namespace Runit.Backend
                     cfg.SaveToken = true;
                     cfg.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidIssuer = Configuration["Authentication:JwtIssuer"],
-                        ValidAudience = Configuration["Authentication:JwtIssuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Authentication:JwtKey"])),
+                        ValidIssuer = Configuration["Authentication:Jwt:Issuer"],
+                        ValidAudience = Configuration["Authentication:Jwt:Issuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Authentication:Jwt:Key"])),
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });
 
             services
                 .AddMvcCore(options => {
-                    options.RequireHttpsPermanent = true; // this does not affect api requests
+                    options.RequireHttpsPermanent = false; // this does not affect api requests
                     // options.RespectBrowserAcceptHeader = true; // false by default
                     //options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
 
@@ -85,6 +85,8 @@ namespace Runit.Backend
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseAuthentication();
 
             app.UseMvc();
 
