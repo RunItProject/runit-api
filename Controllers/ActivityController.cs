@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Runit.Backend.Database;
 using Runit.Backend.Models;
 
 namespace Runit.Backend.Controllers

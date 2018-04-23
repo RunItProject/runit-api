@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Runit.Backend.Models
 {
-    public class User : IdentityUser<int>
+    public class UserRole : IdentityRole<int>
     {
     }
 }
