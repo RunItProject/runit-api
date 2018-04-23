@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,8 +25,24 @@ namespace Runit.Backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<RunitContext>(opt => opt.UseSqlite("Data Source=runit.db"));
-            services.AddMvc();
+            services.AddDbContext<RunitContext>(opt => opt.UseSqlite(Configuration["Database:SqlLite:ConnectionString"]));
+            services
+                .AddMvcCore(options => {
+                    options.RequireHttpsPermanent = true; // this does not affect api requests
+                    // options.RespectBrowserAcceptHeader = true; // false by default
+                    //options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
+
+                    // these two are here to show you where to include custom formatters
+                    // options.OutputFormatters.Add(new CustomOutputFormatter());
+                    // options.InputFormatters.Add(new CustomInputFormatter());
+                })
+                //.AddApiExplorer()
+                .AddAuthorization()
+                .AddFormatterMappings()
+                //.AddCacheTagHelper()
+                .AddDataAnnotations()
+                //.AddCors()
+                .AddJsonFormatters();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
