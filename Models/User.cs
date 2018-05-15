@@ -5,5 +5,6 @@ namespace Runit.Backend.Models
 {
     public class User : IdentityUser<int>
     {
+        public string Name { get; set; }
     }
 }
