@@ -23,12 +23,13 @@ namespace Runit.Backend.Controllers
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
 
-        public UserController(IConfiguration configuration, UserManager<User> userManager, SignInManager<User> signInManager) {
+        public UserController(IConfiguration configuration, UserManager<User> userManager, SignInManager<User> signInManager)
+        {
             this.configuration = configuration;
             this.userManager = userManager;
             this.signInManager = signInManager;
         }
-        
+
         // GET api/user
         [HttpGet]
         public ActionResult<IEnumerable<User>> Get()
@@ -41,6 +42,14 @@ namespace Runit.Backend.Controllers
         public ActionResult<User> Get(int id)
         {
             return new User();
+        }
+
+        // GET api/user/me
+        [HttpGet("me")]
+        public async Task<User> GetSelf()
+        {
+            var user = await userManager.GetUserAsync(User);
+            return user;
         }
 
         // POST api/user
@@ -61,26 +70,57 @@ namespace Runit.Backend.Controllers
         {
         }
 
-        // POST api/auth
+        // POST api/user/auth
         [HttpPost("auth")]
         [AllowAnonymous]
-        public async Task<ActionResult<object>> Authenticate([FromBody] LoginDto loginDto) 
+        public async Task<ActionResult<object>> Authenticate([FromBody] LoginDto loginDto)
         {
-            if (! ModelState.IsValid) {
-                return BadRequest();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             var result = await signInManager.PasswordSignInAsync(loginDto.Email, loginDto.Password, false, false);
-            
+
             if (result.Succeeded)
             {
-                var appUser = userManager.Users.SingleOrDefault(r => r.Email == loginDto.Email);
+                var appUser = await userManager.FindByEmailAsync(loginDto.Email);
                 var token = GenerateJwtToken(appUser);
 
                 return new { Token = token };
             }
 
             return Unauthorized();
+        }
+
+        // POST api/user/register
+        [HttpPost("register")]
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> Register([FromBody] RegisterDto registerDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await userManager.CreateAsync(
+                new User()
+                {
+                    Name = registerDto.Name,
+                    Email = registerDto.Email,
+                    UserName = registerDto.Email
+                },
+                registerDto.Password
+            );
+
+            if (result.Succeeded)
+            {
+                return await Authenticate(new LoginDto() { Email = registerDto.Email, Password = registerDto.Password });
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
         }
 
         private string GenerateJwtToken(User user)
@@ -110,10 +150,21 @@ namespace Runit.Backend.Controllers
         public class LoginDto
         {
             [Required]
-            public string Email {get; set;}
-
-            [Required]            
-            public string Password {get; set;}
+            public string Email { get; set; }
+            [Required]
+            public string Password { get; set; }
+        }
+        public class RegisterDto
+        {
+            [Required]
+            public string Name { get; set; }
+            [Required]
+            public string Email { get; set; }
+            [Required]
+            public string Password { get; set; }
+            [Required]
+            [Compare("Password", ErrorMessage = "The passwords do not match.")]
+            public string PasswordRepeat { get; set; }
         }
     }
 }
