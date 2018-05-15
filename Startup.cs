@@ -83,6 +83,9 @@ namespace Runit.Backend
                 .AddFormatterMappings()
                 //.AddCacheTagHelper()
                 .AddDataAnnotations()
+                .AddJsonOptions(
+                    options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+                )
                 .AddJsonFormatters();
         }
 
