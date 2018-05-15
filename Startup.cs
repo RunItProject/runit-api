@@ -58,9 +58,18 @@ namespace Runit.Backend
                         ClockSkew = TimeSpan.Zero // remove delay of token when expire
                     };
                 });
-
             services
-                .AddMvcCore(options => {
+            .AddCors(options =>
+            {
+                options.AddPolicy("CorsAllowAllPolicy", builder =>
+                    builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
+            });
+            services
+                .AddMvcCore(options =>
+                {
                     options.RequireHttpsPermanent = false; // this does not affect api requests
                     // options.RespectBrowserAcceptHeader = true; // false by default
                     //options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
@@ -74,7 +83,6 @@ namespace Runit.Backend
                 .AddFormatterMappings()
                 //.AddCacheTagHelper()
                 .AddDataAnnotations()
-                //.AddCors()
                 .AddJsonFormatters();
         }
 
@@ -84,6 +92,7 @@ namespace Runit.Backend
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseCors("CorsAllowAllPolicy");
             }
 
             app.UseAuthentication();
