@@ -77,6 +77,7 @@ namespace Runit.Backend
                     // these two are here to show you where to include custom formatters
                     // options.OutputFormatters.Add(new CustomOutputFormatter());
                     // options.InputFormatters.Add(new CustomInputFormatter());
+                    options.OutputFormatters.Add(new ICalSerializerOutputFormatter());
                 })
                 //.AddApiExplorer()
                 .AddAuthorization()

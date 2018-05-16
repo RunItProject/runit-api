@@ -34,7 +34,7 @@ namespace Runit.Backend.Controllers
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<IEnumerable<Activity>>> GetForUserAsync(int userId)
         {
-            var authenticatedUser = await GetAuthenticatedUserAsync();
+            var authenticatedUser = await userManager.GetUserAsync(User);
             var forUser = await context.Users.FindAsync(userId);
 
             if (forUser == null) {
@@ -65,7 +65,7 @@ namespace Runit.Backend.Controllers
         [HttpPost]
         public async Task<ActionResult> PostAsync([FromBody] Activity activity)
         {
-            var authenticatedUser = await GetAuthenticatedUserAsync();
+            var authenticatedUser = await userManager.GetUserAsync(User);
 
             if (! (activity.UserId == authenticatedUser.Id || User.IsInRole("Admin"))) { 
                 return Forbid();
@@ -85,7 +85,7 @@ namespace Runit.Backend.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> PutAsync(int id, [FromBody] Activity updatedActivity)
         {
-            var authenticatedUser = await GetAuthenticatedUserAsync();
+            var authenticatedUser = await userManager.GetUserAsync(User);
             var oldActivity = await context.Activities.FindAsync(id);
 
             if (! ((oldActivity.UserId == authenticatedUser.Id && updatedActivity.UserId == authenticatedUser.Id) 
@@ -111,7 +111,7 @@ namespace Runit.Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAsync(int id)
         {
-            var authenticatedUser = await GetAuthenticatedUserAsync();
+            var authenticatedUser = await userManager.GetUserAsync(User);
             var activity = await context.Activities.FindAsync(id);
 
             if (activity == null) {
@@ -126,11 +126,6 @@ namespace Runit.Backend.Controllers
             await context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private async Task<User> GetAuthenticatedUserAsync() 
-        {
-            return await userManager.GetUserAsync(User);
         }
     }
 }

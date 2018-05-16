@@ -13,6 +13,7 @@ namespace Runit.Backend.Database
     {
         public DbSet<Activity> Activities { get; set; }
         public DbSet<ActivityType> ActivityTypes { get; set; }
+        public DbSet<UserFeed> UserFeeds { get; set; }
         public RunitContext(DbContextOptions<RunitContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder builder) {
