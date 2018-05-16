@@ -67,14 +67,18 @@ namespace Runit.Backend.Controllers
         {
             var authenticatedUser = await GetAuthenticatedUserAsync();
 
-            if (! (activity.User == authenticatedUser || User.IsInRole("Admin"))) { 
+            if (! (activity.UserId == authenticatedUser.Id || User.IsInRole("Admin"))) { 
                 return Forbid();
+            }
+
+            if (! ModelState.IsValid) {
+                return BadRequest();
             }
 
             context.Activities.Add(activity);
             await context.SaveChangesAsync();
 
-            return NoContent();
+            return CreatedAtAction(nameof(GetAsync), new {id = activity.Id}, activity);
         }
 
         // PUT api/activity/5
@@ -83,10 +87,18 @@ namespace Runit.Backend.Controllers
         {
             var authenticatedUser = await GetAuthenticatedUserAsync();
             var oldActivity = await context.Activities.FindAsync(id);
-            
-            if (! ((oldActivity.User == authenticatedUser && updatedActivity.User == authenticatedUser) 
+
+            if (! ((oldActivity.UserId == authenticatedUser.Id && updatedActivity.UserId == authenticatedUser.Id) 
                     || User.IsInRole("Admin"))) { 
                 return Forbid();
+            }
+            
+            if (oldActivity == null) {
+                return NotFound();
+            }
+
+            if (! ModelState.IsValid) {
+                return BadRequest();
             }
 
             context.Entry(oldActivity).CurrentValues.SetValues(updatedActivity);
@@ -101,6 +113,10 @@ namespace Runit.Backend.Controllers
         {
             var authenticatedUser = await GetAuthenticatedUserAsync();
             var activity = await context.Activities.FindAsync(id);
+
+            if (activity == null) {
+                return NotFound();
+            }
 
             if (! (activity.User == authenticatedUser || User.IsInRole("Admin"))) { 
                 return Forbid();
