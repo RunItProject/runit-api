@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Runit.Backend.Database;
+using Runit.Backend.Database.Seeds;
 using Runit.Backend.Models;
 
 namespace Runit.Backend
@@ -106,8 +107,18 @@ namespace Runit.Backend
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
                 var context = serviceScope.ServiceProvider.GetRequiredService<RunitContext>();
+                var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 context.Database.EnsureCreated();
-                context.EnsureSeeded();
+                
+                List<Seeder> seeders = new List<Seeder>() {
+                    new UserSeeder(context, userManager),
+                    new ActivityTypeSeeder(context),
+                    new ActivitySeeder(context)
+                };
+
+                foreach (var seeder in seeders) {
+                    seeder.RunAsync();
+                }
             }
 
         }
