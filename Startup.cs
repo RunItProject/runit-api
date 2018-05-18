@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -109,20 +109,21 @@ namespace Runit.Backend
                 var context = serviceScope.ServiceProvider.GetRequiredService<RunitContext>();
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 context.Database.EnsureCreated();
-                
+
                 List<Seeder> seeders = new List<Seeder>() {
                     new UserSeeder(context, userManager),
                     new ActivityTypeSeeder(context),
-                    new ActivitySeeder(context)
+                    new ActivitySeeder(context),
+                    new PlanSeeder(context)
                 };
 
                 foreach (var seeder in seeders)
                 {
                     if (seeder.ShouldRun())
                     {
-                    seeder.RunAsync();
+                        seeder.RunAsync();
+                    }
                 }
-            }
             }
 
         }

@@ -28,6 +28,29 @@ namespace Runit.Backend.Database
                 .WithMany()
                 .HasForeignKey(activity => activity.TypeId)
                 .IsRequired();
+
+            builder.Entity<Activity>()
+               .HasOne(activity => activity.User)
+               .WithMany()
+               .HasForeignKey(activity => activity.UserId)
+               .IsRequired();
+
+            builder.Entity<Activity>()
+                .HasOne(activity => activity.UserPlanSubscription)
+                .WithMany()
+                .HasForeignKey(activity => activity.UserPlanSubscriptionId);
+
+            builder.Entity<UserPlanSubscription>()
+                .HasOne(sub => sub.Plan)
+                .WithMany(plan => plan.UserPlanSubscriptions)
+                .HasForeignKey(sub => sub.PlanId)
+                .IsRequired();
+
+            builder.Entity<UserPlanSubscription>()
+                .HasOne(sub => sub.User)
+                .WithMany()
+                .HasForeignKey(sub => sub.UserId)
+                .IsRequired();
         }
     }
 }
