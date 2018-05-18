@@ -21,8 +21,8 @@ namespace Runit.Backend.Database.Seeds
             var typeLong = await context.ActivityTypes.FirstOrDefaultAsync(at => at.Name == "long");
             var typeRace = await context.ActivityTypes.FirstOrDefaultAsync(at => at.Name == "race");
 
-            var userMortimer = context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == "MORTYH@GMAIL.COM");
-            var userJohnDoe = context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == "JOHN.DOE@EXAMPLE.COM");
+            var userMortimer = await context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == "MORTYH@GMAIL.COM");
+            var userJohnDoe = await context.Users.FirstOrDefaultAsync(u => u.NormalizedEmail == "JOHN.DOE@EXAMPLE.COM");
 
             context.Activities.Add(new Activity()
             {
@@ -66,6 +66,11 @@ namespace Runit.Backend.Database.Seeds
             });
 
             await context.SaveChangesAsync();
+        }
+
+        public override bool ShouldRun()
+        {
+            return !context.Activities.Any();
         }
     }
 }

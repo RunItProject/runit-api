@@ -22,13 +22,26 @@ namespace Runit.Backend.Database.Seeds
         {
             await userManager.CreateAsync(new User(){
                 Email = "jane.doe@example.com",
+                UserName = "jane.doe@example.com",
                 Name =  "Jane Doe"
             });
 
             await userManager.CreateAsync(new User(){
                 Email = "john.doe@example.com",
+                UserName = "john.doe@example.com",
                 Name = "John Doe"
             });
+
+            await userManager.CreateAsync(new User(){
+                Email = "mortyh@gmail.com",
+                UserName = "mortyh@gmail.com",
+                Name = "Mortimer"
+            });
+        }
+
+        public override bool ShouldRun()
+        {
+            return context.Users.Count() == 0;
         }
     }
 }

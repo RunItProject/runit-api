@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -116,9 +116,13 @@ namespace Runit.Backend
                     new ActivitySeeder(context)
                 };
 
-                foreach (var seeder in seeders) {
+                foreach (var seeder in seeders)
+                {
+                    if (seeder.ShouldRun())
+                    {
                     seeder.RunAsync();
                 }
+            }
             }
 
         }

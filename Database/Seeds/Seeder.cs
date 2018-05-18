@@ -18,5 +18,6 @@ namespace Runit.Backend.Database.Seeds
             this.context = context;
         }
         public abstract Task RunAsync();
+        public abstract bool ShouldRun();
     }
 }

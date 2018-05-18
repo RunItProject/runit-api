@@ -31,5 +31,10 @@ namespace Runit.Backend.Database.Seeds
 
             await context.SaveChangesAsync();
         }
+
+        public override bool ShouldRun()
+        {
+            return !context.ActivityTypes.Any();
+        }
     }
 }
