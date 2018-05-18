@@ -72,7 +72,8 @@ namespace Runit.Backend
                 .AddMvcCore(options =>
                 {
                     options.RequireHttpsPermanent = false; // this does not affect api requests
-                    // options.RespectBrowserAcceptHeader = true; // false by default
+                    options.ReturnHttpNotAcceptable = true;
+                    options.RespectBrowserAcceptHeader = true;
                     //options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
 
                     // these two are here to show you where to include custom formatters
