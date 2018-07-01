@@ -98,12 +98,16 @@ namespace Runit.Backend
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseCors("CorsAllowAllPolicy");
-            }
+            } 
+            app.UseCors("CorsAllowAllPolicy"); // @fixme
 
             app.UseAuthentication();
 
-            app.UseMvc();
+            app.UseMvc(routes => {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller}/{action=Index}/{id?}");
+            });
 
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
