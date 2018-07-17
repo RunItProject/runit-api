@@ -98,16 +98,19 @@ namespace Runit.Backend
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            } 
+            }
             app.UseCors("CorsAllowAllPolicy"); // @fixme
 
             app.UseAuthentication();
 
-            app.UseMvc(routes => {
+            app.UseMvc(routes =>
+            {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller}/{action=Index}/{id?}");
             });
+
+
 
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
@@ -115,21 +118,26 @@ namespace Runit.Backend
                 var userManager = serviceScope.ServiceProvider.GetRequiredService<UserManager<User>>();
                 context.Database.EnsureCreated();
 
-                List<Seeder> seeders = new List<Seeder>() {
+                if (env.IsDevelopment())
+                {
+                    List<Seeder> seeders = new List<Seeder>() {
                     new UserSeeder(context, userManager),
                     new ActivityTypeSeeder(context),
                     new ActivitySeeder(context),
                     new PlanSeeder(context)
                 };
 
-                foreach (var seeder in seeders)
-                {
-                    if (seeder.ShouldRun())
+                    foreach (var seeder in seeders)
                     {
-                        seeder.RunAsync();
+                        if (seeder.ShouldRun())
+                        {
+                            seeder.RunAsync();
+                        }
                     }
                 }
             }
+
+
 
         }
     }
