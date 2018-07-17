@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
 using Runit.Backend.Models;
 
-namespace Runit.Backend
+namespace Runit.Backend.Infrastructure
 {
     internal class ICalSerializerOutputFormatter : TextOutputFormatter
     {

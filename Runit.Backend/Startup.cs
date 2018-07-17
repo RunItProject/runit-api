@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Runit.Backend.Database;
 using Runit.Backend.Database.Seeds;
+using Runit.Backend.Infrastructure;
 using Runit.Backend.Models;
 
 namespace Runit.Backend
