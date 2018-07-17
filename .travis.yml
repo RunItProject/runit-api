@@ -3,6 +3,8 @@ mono: none
 dotnet: 2.1.0
 script:
 - dotnet publish Runit.Backend/ -c Release -o $TRAVIS_BUILD_DIR/publish
+install:
+- echo 'rancor.mortimer.nu ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNTuni9lck7RnBoGNyh1hdJmUn3BauxnKYpYgaXweF7HA2zq4t56AS1CqjMWpXpBL2MyI4i6pdUge2KYApbJGIs=' >> $HOME/.ssh/known_hosts
 deploy:
 - provider: script
   skip_cleanup: true
