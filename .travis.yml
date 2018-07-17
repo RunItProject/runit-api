@@ -1,6 +1,6 @@
 language: csharp
 mono: none
-dotnet: 2.1.0
+dotnet: 2.1
 script:
 - dotnet publish Runit.Backend/ -c Release -o $TRAVIS_BUILD_DIR/publish
 install:
