@@ -14,10 +14,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Converters;
 using Runit.Backend.Database;
 using Runit.Backend.Database.Seeds;
 using Runit.Backend.Infrastructure;
 using Runit.Backend.Models;
+using Runit.Backend.Services;
 
 namespace Runit.Backend
 {
@@ -87,10 +89,13 @@ namespace Runit.Backend
                 .AddFormatterMappings()
                 //.AddCacheTagHelper()
                 .AddDataAnnotations()
-                .AddJsonOptions(
-                    options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-                )
+                .AddJsonOptions(options => {
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                })
                 .AddJsonFormatters();
+
+                services.AddTransient<EmailService, EmailService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

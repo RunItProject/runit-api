@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Runit.Backend.Models;
+using Runit.Backend.Services;
+using Runit.Backend.Infrastructure;
+using System.Web;
 
 namespace Runit.Backend.Controllers
 {
@@ -22,12 +25,14 @@ namespace Runit.Backend.Controllers
         private readonly IConfiguration configuration;
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager;
+        private readonly EmailService emailService;
 
-        public UserController(IConfiguration configuration, UserManager<User> userManager, SignInManager<User> signInManager)
+        public UserController(IConfiguration configuration, UserManager<User> userManager, SignInManager<User> signInManager, EmailService emailService)
         {
             this.configuration = configuration;
             this.userManager = userManager;
             this.signInManager = signInManager;
+            this.emailService = emailService;
         }
 
         // GET api/user
@@ -80,12 +85,27 @@ namespace Runit.Backend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await signInManager.PasswordSignInAsync(loginDto.Email, loginDto.Password, false, false);
+            User user = null;
+            switch (loginDto.IdentifierType)
+            {
+                case LoginDto.IdentifierTypes.Email:
+                    user = await userManager.FindByEmailAsync(loginDto.Identifier);
+                    break;
+                case LoginDto.IdentifierTypes.Id:
+                    user = await userManager.FindByIdAsync(loginDto.Identifier);
+                    break;
+            }
+
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            var result = await signInManager.PasswordSignInAsync(user, loginDto.Password, false, false);
 
             if (result.Succeeded)
             {
-                var appUser = await userManager.FindByEmailAsync(loginDto.Email);
-                var token = GenerateJwtToken(appUser);
+                var token = GenerateJwtToken(user);
 
                 return new { Token = token };
             }
@@ -115,7 +135,66 @@ namespace Runit.Backend.Controllers
 
             if (result.Succeeded)
             {
-                return await Authenticate(new LoginDto() { Email = registerDto.Email, Password = registerDto.Password });
+                return await Authenticate(new LoginDto()
+                {
+                    Identifier = registerDto.Email,
+                    IdentifierType = LoginDto.IdentifierTypes.Email,
+                    Password = registerDto.Password
+                });
+            }
+            else
+            {
+                return BadRequest(result.Errors);
+            }
+        }
+
+        // POST api/user/reset_password
+        [HttpPost("reset_password")]
+        [AllowAnonymous]
+        public async Task<ActionResult> ResetPassword([FromBody] PasswordResetDto passwordResetDto)
+        {
+            var user = await userManager.FindByEmailAsync(passwordResetDto.Email);
+
+            if (!ModelState.IsValid || user == null)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+            var emailSuccess = await emailService.SendPasswordResetLink(
+                user.Email,
+                user.Name,
+                HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + "/reset-password/" + user.Id + "?token=" + HttpUtility.UrlEncode(token)
+            );
+
+            if (emailSuccess)
+            {
+                return Accepted();
+            }
+            else
+            {
+                return this.InternalServerError();
+            }
+        }
+
+        // PUT api/user/reset_password
+        [HttpPut("reset_password")]
+        [AllowAnonymous]
+        public async Task<ActionResult> UpdatePassword([FromBody] PasswordUpdateDto passwordUpdateDto)
+        {
+            var user = await userManager.FindByIdAsync(passwordUpdateDto.UserId);
+
+            if (!ModelState.IsValid || user == null)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await userManager.ResetPasswordAsync(user, passwordUpdateDto.Token, passwordUpdateDto.Password);
+
+            if (result.Succeeded)
+            {
+                return NoContent();
             }
             else
             {
@@ -150,9 +229,16 @@ namespace Runit.Backend.Controllers
         public class LoginDto
         {
             [Required]
-            public string Email { get; set; }
+            public string Identifier { get; set; }
+            [Required]
+            public IdentifierTypes IdentifierType { get; set; }
             [Required]
             public string Password { get; set; }
+
+            public enum IdentifierTypes
+            {
+                Email, Id
+            }
         }
         public class RegisterDto
         {
@@ -160,6 +246,25 @@ namespace Runit.Backend.Controllers
             public string Name { get; set; }
             [Required]
             public string Email { get; set; }
+            [Required]
+            public string Password { get; set; }
+            [Required]
+            [Compare("Password", ErrorMessage = "The passwords do not match.")]
+            public string PasswordRepeat { get; set; }
+        }
+
+        public class PasswordResetDto
+        {
+            [Required]
+            public string Email { get; set; }
+        }
+
+        public class PasswordUpdateDto
+        {
+            [Required]
+            public string UserId { get; set; }
+            [Required]
+            public string Token { get; set; }
             [Required]
             public string Password { get; set; }
             [Required]
